@@ -26,6 +26,8 @@ import com.mycontacts.group.service.GroupService;
 import com.mycontacts.group.service.GroupServiceImpl;
 import com.mycontacts.profile.service.ProfileService;
 import com.mycontacts.profile.service.ProfileServiceImpl;
+import com.mycontacts.query.service.QueryService;
+import com.mycontacts.query.service.QueryServiceImpl;
 import com.mycontacts.search.service.SearchService;
 import com.mycontacts.search.service.SearchServiceImpl;
 import com.mycontacts.session.SessionManager;
@@ -44,22 +46,21 @@ import com.mycontacts.user.service.UserServiceImpl;
  * MAIN CLASS - MyContactsApplication
  * ======================================================
  *
- * Use Case 11: Contact Tags
+ * Use Case 12: Advanced Contact Queries
  *
  * Description:
- * This version extends the MyContacts system by allowing
- * users to categorize contacts using tags.
+ * This version extends the MyContacts system with combined
+ * queries that work within a specific tag.
  *
  * At this stage, the application:
- * - Allows creating tags
- * - Allows assigning tags to contacts
- * - Allows removing tags from contacts
- * - Allows viewing contacts by tag
+ * - Search contacts by tag + name
+ * - Filter contacts by tag + creation date
+ * - Sort contacts within a tag
  *
  * The implementation uses simple collections.
  *
  * @author Developer
- * @version 11.0
+ * @version 12.0
  */
 public class MyContactsApplication {
 	public static void main(String[] args) {
@@ -77,9 +78,10 @@ public class MyContactsApplication {
 		FilterService filterService = new FilterServiceImpl(contactRepository, groupRepository);
 		TagRepository tagRepository = new InMemoryTagRepository();
 		TagService tagService = new TagServiceImpl(tagRepository, contactRepository);
+		QueryService queryService = new QueryServiceImpl(contactRepository, tagRepository, filterService, searchService);
 
 		try (Scanner scanner = new Scanner(System.in)) {
-			System.out.println("=== MyContacts (UC-11: Contact Tags) ===");
+			System.out.println("=== MyContacts (UC-12: Advanced Contact Queries) ===");
 			while (true) {
 				System.out.println();
 				System.out.println("1 Register");
@@ -100,8 +102,9 @@ public class MyContactsApplication {
 				System.out.println("16 Add Tag To Contact");
 				System.out.println("17 Remove Tag From Contact");
 				System.out.println("18 View Contacts By Tag");
-				System.out.println("19 Logout");
-				System.out.println("20 Exit");
+				System.out.println("19 Advanced Contact Queries");
+				System.out.println("20 Logout");
+				System.out.println("21 Exit");
 				System.out.print("Choose an option: ");
 
 				if (!scanner.hasNextLine()) {
@@ -674,15 +677,90 @@ public class MyContactsApplication {
 					break;
 				}
 				case "19": {
+					if (sessionManager.getCurrentUser().isEmpty()) {
+						System.out.println("No user is logged in. Please login first.");
+						break;
+					}
+
+					System.out.println();
+					System.out.println("=== Advanced Contact Queries ===");
+					System.out.println("1 Search within Tag (by Name)");
+					System.out.println("2 Filter within Tag (by Creation Date)");
+					System.out.println("3 Sort within Tag (by Name)");
+					System.out.print("Choose an option: ");
+					String qChoice = scanner.nextLine().trim();
+
+					switch (qChoice) {
+					case "1": {
+						System.out.print("Enter tag name: ");
+						String tagName = scanner.nextLine();
+						System.out.print("Enter name search text: ");
+						String nameQuery = scanner.nextLine();
+						var results = queryService.searchContactsByTagAndName(tagName, nameQuery);
+						if (results.isEmpty()) {
+							System.out.println("No contacts found");
+							break;
+						}
+						System.out.println("Matches:");
+						for (var c : results) {
+							System.out.println("- " + c.getId() + " | " + c.getName());
+						}
+						break;
+					}
+					case "2": {
+						System.out.print("Enter tag name: ");
+						String tagName = scanner.nextLine();
+						System.out.print("Enter creation date (YYYY-MM-DD): ");
+						String dateRaw = scanner.nextLine();
+						LocalDate date;
+						try {
+							date = LocalDate.parse(dateRaw.trim());
+						} catch (Exception ex) {
+							System.out.println("Invalid date format.");
+							break;
+						}
+
+						var results = queryService.filterContactsByTagAndDate(tagName, date);
+						if (results.isEmpty()) {
+							System.out.println("No contacts found");
+							break;
+						}
+						System.out.println("Matches:");
+						for (var c : results) {
+							System.out.println("- " + c.getId() + " | " + c.getName() + " | " + c.getCreatedAt());
+						}
+						break;
+					}
+					case "3": {
+						System.out.print("Enter tag name: ");
+						String tagName = scanner.nextLine();
+						var results = queryService.sortContactsWithinTag(tagName);
+						if (results.isEmpty()) {
+							System.out.println("No contacts found");
+							break;
+						}
+						System.out.println("Matches:");
+						for (var c : results) {
+							System.out.println("- " + c.getId() + " | " + c.getName());
+						}
+						break;
+					}
+					default:
+						System.out.println("Invalid option. Please choose 1, 2, or 3.");
+						break;
+					}
+					break;
+				}
+				case "20": {
 					sessionManager.logout();
 					System.out.println("Logged out");
 					break;
 				}
-				case "20":
+				case "21":
 					System.out.println("Goodbye!");
 					return;
 				default:
-					System.out.println("Invalid option. Please choose 1-20.");
+					System.out.println("Invalid option. Please choose 1-21.");
 					break;
 				}
 			}

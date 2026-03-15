@@ -1,6 +1,6 @@
-# MyContacts — UC-11 Contact Tags
+# MyContacts — UC-12 Advanced Contact Queries
 
-This repository contains **Use Case 11 of the MyContacts system**.
+This repository contains **Use Case 12 of the MyContacts system**.
 It builds on:
 
 - UC-01 User Registration
@@ -14,34 +14,33 @@ It builds on:
 - UC-09 Search Contacts
 - UC-10 Filter & Sort Contacts
 - UC-11 Contact Tags
+- UC-12 Advanced Contact Queries
 
 ## Description
 
-- **Use Case:** UC-11 Contact Tags
+- **Use Case:** UC-12 Advanced Contact Queries
 - **Actor:** Authenticated user
-- **Goal:** Categorize contacts using tags (e.g., Family, Work, Friends)
+- **Goal:** Run combined queries within a specific tag
 
-## Tag Management Flow
+## Advanced Queries Flow
 
 1. User logs in
 2. User can:
-   - Create a tag
-   - Add a tag to a contact (creates the tag automatically if missing)
-   - Remove a tag from a contact
-   - View contacts by tag
+   - Search contacts by **tag + name**
+   - Filter contacts by **tag + creation date**
+   - Sort contacts **within a tag** (by name)
 3. System prints matching contacts (or `No contacts found`)
 
 ## Java Concepts Used
 
-- `Set<Tag>` with `HashSet` to store unique tags per contact
-- Case-insensitive tag names via normalization (`toLowerCase(Locale.ROOT)`)
-- `Map` storage for tags in an in-memory repository
-- Simple loops for filtering contacts by tag
+- Service reuse via composition (query service reuses search/filter/tag repositories)
+- Simple list intersection using IDs
+- Case-insensitive tag lookup via normalization in the repository
+- Active-only results (deleted contacts excluded)
 
 ## Testing Summary (JUnit 5)
 
-- `test/com/mycontacts/tag/TagServiceTest.java`
-  - `shouldCreateTag()`
-  - `shouldAddTagToContact()`
-  - `shouldRemoveTagFromContact()`
-  - `shouldReturnContactsByTag()`
+- `test/com/mycontacts/query/QueryServiceTest.java`
+   - `shouldSearchContactsByTagAndName()`
+   - `shouldFilterContactsByTagAndDate()`
+   - `shouldSortContactsWithinTag()`

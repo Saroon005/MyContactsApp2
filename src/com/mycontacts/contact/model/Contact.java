@@ -10,9 +10,9 @@ import com.mycontacts.common.exception.ValidationException;
 
 public abstract class Contact {
 	private final UUID id;
-	private final String name;
-	private final List<PhoneNumber> phoneNumbers;
-	private final List<Email> emails;
+	private String name;
+	private List<PhoneNumber> phoneNumbers;
+	private List<Email> emails;
 	private final LocalDateTime createdAt;
 
 	protected Contact(UUID id, String name, List<PhoneNumber> phoneNumbers, List<Email> emails, LocalDateTime createdAt) {
@@ -31,19 +31,31 @@ public abstract class Contact {
 		return name;
 	}
 
+	public void updateName(String newName) {
+		this.name = normalizeRequired(newName, "Contact name");
+	}
+
 	public List<PhoneNumber> getPhoneNumbers() {
 		return new ArrayList<>(phoneNumbers);
+	}
+
+	public void replacePhoneNumbers(List<PhoneNumber> newPhoneNumbers) {
+		this.phoneNumbers = List.copyOf(Objects.requireNonNull(newPhoneNumbers, "phoneNumbers cannot be null"));
 	}
 
 	public List<Email> getEmails() {
 		return new ArrayList<>(emails);
 	}
 
+	public void replaceEmails(List<Email> newEmails) {
+		this.emails = List.copyOf(Objects.requireNonNull(newEmails, "emails cannot be null"));
+	}
+
 	public LocalDateTime getCreatedAt() {
 		return createdAt;
 	}
 
-	private static String normalizeRequired(String value, String fieldName) {
+	protected static String normalizeRequired(String value, String fieldName) {
 		Objects.requireNonNull(fieldName, "fieldName cannot be null");
 		if (value == null) {
 			throw new ValidationException(fieldName + " cannot be null");

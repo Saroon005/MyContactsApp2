@@ -23,5 +23,15 @@ public interface ContactService {
 
 	Optional<Contact> getContactById(UUID id);
 
+	void updateContactName(UUID contactId, String newName);
+
+	void updatePhone(UUID contactId, PhoneNumber phone);
+
+	void updateEmail(UUID contactId, Email email);
+
+	void undoLastEdit();
+
+	void redoLastEdit();
+
 	List<Contact> getAllContacts();
 }

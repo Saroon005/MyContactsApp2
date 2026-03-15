@@ -1,56 +1,58 @@
-# MyContacts — UC-05 View Contact Details
+# MyContacts — UC-06 Edit Contact with Undo/Redo
 
-This repository contains **Use Case 5 of the MyContacts system**.
+This repository contains **Use Case 6 of the MyContacts system**.
 It builds on:
 
 - **UC-01:** User Registration
 - **UC-02:** Authentication
 - **UC-03:** Profile Management
 - **UC-04:** Contact Creation
-- **UC-05:** Contact Viewing (this version)
+- **UC-05:** View Contact Details
+- **UC-06:** Edit Contact (this version)
 
 ## Description
 
-- **Use Case:** UC-05 View Contact Details
+- **Use Case:** UC-06 Edit Contact with Undo/Redo
 - **Actor:** Authenticated user
-- **Goal:** View stored contact details with optional formatting
+- **Goal:** Edit a contact’s name/phone/email and undo/redo edits
 
-## Contact Viewing Flow
+## Edit Contact Flow
 
 1. User logs in
-2. User chooses **View Contact Details**
-3. User enters a contact ID
-4. System retrieves the contact from the repository via `ContactService`
-5. User chooses a display mode:
-	 - Normal View
-	 - Uppercase Name
-	 - Mask Email
-6. The application applies decorators dynamically and prints the formatted output
+2. User chooses **Edit Contact**
+3. User enters contact ID
+4. User chooses a field to edit: name / phone / email
+5. The system executes an edit command via an undo/redo manager
+
+## Undo/Redo Flow
+
+- **Undo Last Edit** reverts the last command
+- **Redo Last Edit** re-applies the most recently undone command
 
 ## OOP Concepts Used
 
-- **Abstraction:** `ContactView` interface defines display behavior
-- **Encapsulation:** display logic is separated from the `Contact` model
-- **Polymorphism:** decorators wrap a `ContactView` without changing callers
+- **Encapsulation:** edit operations are isolated in command objects
+- **Abstraction:** commands share a common interface
+- **Composition:** contacts contain `PhoneNumber` and `Email`
 
 ## Design Patterns Used
 
-- **Decorator Pattern:** `UpperCaseNameDecorator`, `MaskedEmailDecorator`
-- **Builder Pattern (from UC-04):** contact construction
-- **Command Pattern (from UC-03):** profile operations
+- **Command Pattern:** edit operations are represented as commands
+- **Memento Pattern:** `ContactMemento` stores previous contact state
 
 ## Java Concepts Used
 
-- `Optional` for `getContactById` and session checks
-- `UUID` parsing (`UUID.fromString`) for contact lookup
-- `Pattern` / `Matcher` for formatting transforms
+- `Deque` stacks for undo/redo
+- `UUID` parsing for contact lookup
+- Defensive copies for lists
 
 ## Testing Summary (JUnit 5)
 
-- Views: `test/com/mycontacts/contact/display/ContactViewTest.java`
-	- `shouldDisplayContactNormally()`
-	- `shouldDisplayUppercaseName()`
-	- `shouldMaskEmailAddress()`
-	- `shouldAllowMultipleDecorators()`
+- Edits: `test/com/mycontacts/contact/edit/EditContactCommandTest.java`
+  - `shouldUpdateContactName()`
+  - `shouldUndoNameChange()`
+  - `shouldRedoNameChange()`
+  - `shouldUpdatePhone()`
+  - `shouldRestorePreviousState()`
 
 Run tests using VS Code Testing (Java Test Runner) or Eclipse JUnit.

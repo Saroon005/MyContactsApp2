@@ -31,22 +31,22 @@ import com.mycontacts.user.service.UserServiceImpl;
  * MAIN CLASS - MyContactsApplication
  * ======================================================
  *
- * Use Case 5: View Contact Details
+ * Use Case 6: Edit Contact with Undo/Redo
  *
  * Description:
  * This version extends the MyContacts system by allowing
- * users to view stored contacts in a formatted manner.
+ * users to edit existing contacts and undo/redo edits.
  *
  * At this stage, the application:
  * - Displays full contact information
  * - Supports formatted views using decorators
- * - Allows masking of sensitive information
- * - Provides flexible display extensions
+ * - Allows editing name/phone/email
+ * - Supports undo and redo of the last edit
  *
- * This introduces the Decorator Pattern.
+ * This introduces Command + Memento patterns for reversible edits.
  *
  * @author Developer
- * @version 5.0
+ * @version 6.0
  */
 public class MyContactsApplication {
 	public static void main(String[] args) {
@@ -60,7 +60,7 @@ public class MyContactsApplication {
 		ContactService contactService = new ContactServiceImpl(contactRepository);
 
 		try (Scanner scanner = new Scanner(System.in)) {
-			System.out.println("=== MyContacts (UC-05: View Contact Details) ===");
+			System.out.println("=== MyContacts (UC-06: Edit Contact with Undo/Redo) ===");
 			while (true) {
 				System.out.println();
 				System.out.println("1 Register");
@@ -68,10 +68,16 @@ public class MyContactsApplication {
 				System.out.println("3 Manage Profile");
 				System.out.println("4 Create Contact");
 				System.out.println("5 View Contact Details");
-				System.out.println("6 Logout");
-				System.out.println("7 Exit");
+				System.out.println("6 Edit Contact");
+				System.out.println("7 Undo Last Edit");
+				System.out.println("8 Redo Last Edit");
+				System.out.println("9 Logout");
+				System.out.println("10 Exit");
 				System.out.print("Choose an option: ");
 
+				if (!scanner.hasNextLine()) {
+					return;
+				}
 				String choice = scanner.nextLine().trim();
 				switch (choice) {
 				case "1":
@@ -222,14 +228,84 @@ public class MyContactsApplication {
 					}
 					break;
 				case "6":
+					if (sessionManager.getCurrentUser().isEmpty()) {
+						System.out.println("No user is logged in. Please login first.");
+						break;
+					}
+
+					System.out.print("Enter contact ID: ");
+					String editIdRaw = scanner.nextLine();
+					UUID editId;
+					try {
+						editId = UUID.fromString(editIdRaw.trim());
+					} catch (IllegalArgumentException ex) {
+						System.out.println("Invalid contact ID format.");
+						break;
+					}
+
+					System.out.println("Choose field to edit:");
+					System.out.println("1 Name");
+					System.out.println("2 Phone");
+					System.out.println("3 Email");
+					System.out.print("Option: ");
+					String fieldChoice = scanner.nextLine().trim();
+					try {
+						switch (fieldChoice) {
+						case "1":
+							System.out.print("Enter new name: ");
+							String newName = scanner.nextLine();
+							contactService.updateContactName(editId, newName);
+							System.out.println("Contact name updated");
+							break;
+						case "2":
+							System.out.print("Enter phone label (e.g., Mobile): ");
+							String phoneLabel = scanner.nextLine();
+							System.out.print("Enter phone number: ");
+							String phoneNumber = scanner.nextLine();
+							contactService.updatePhone(editId, new PhoneNumber(phoneNumber, phoneLabel));
+							System.out.println("Contact phone updated");
+							break;
+						case "3":
+							System.out.print("Enter email label (e.g., Primary): ");
+							String emailLabel = scanner.nextLine();
+							System.out.print("Enter email address: ");
+							String emailAddress = scanner.nextLine();
+							contactService.updateEmail(editId, new Email(emailAddress, emailLabel));
+							System.out.println("Contact email updated");
+							break;
+						default:
+							System.out.println("Invalid option. Please choose 1, 2, or 3.");
+							break;
+						}
+					} catch (ValidationException ex) {
+						System.out.println("Edit failed: " + ex.getMessage());
+					}
+					break;
+				case "7":
+					if (sessionManager.getCurrentUser().isEmpty()) {
+						System.out.println("No user is logged in. Please login first.");
+						break;
+					}
+					contactService.undoLastEdit();
+					System.out.println("Undo executed");
+					break;
+				case "8":
+					if (sessionManager.getCurrentUser().isEmpty()) {
+						System.out.println("No user is logged in. Please login first.");
+						break;
+					}
+					contactService.redoLastEdit();
+					System.out.println("Redo executed");
+					break;
+				case "9":
 					sessionManager.logout();
 					System.out.println("Logged out");
 					break;
-				case "7":
+				case "10":
 					System.out.println("Goodbye!");
 					return;
 				default:
-					System.out.println("Invalid option. Please choose 1, 2, 3, 4, 5, 6, or 7.");
+					System.out.println("Invalid option. Please choose 1-10.");
 					break;
 				}
 			}

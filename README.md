@@ -1,50 +1,52 @@
-# MyContacts — UC-02 User Authentication
+# MyContacts — UC-03 User Profile Management
 
-This repository contains **Use Case 2 of the MyContacts system**.
-It **builds on UC-01 (User Registration)** and introduces secure login using authentication strategies and a logged-in session.
+This repository contains **Use Case 3 of the MyContacts system**.
+It builds on:
+
+- **UC-01:** User Registration
+- **UC-02:** Authentication + Session
+- **UC-03:** Profile Management (this version)
 
 ## Description
 
-- **Use Case:** UC-02 User Authentication
-- **Actor:** Registered user
-- **Goal:** Log in using email + password
+- **Use Case:** UC-03 User Profile Management
+- **Actor:** Authenticated user
+- **Goal:** Update email and change password securely
 
-## Authentication Flow
+## Profile Management Flow
 
-1. User chooses **Login** from the console menu
-2. User enters email
-3. User enters password
-4. System finds the user by email (repository)
-5. System verifies password hash (SHA-256)
-6. If valid: user is stored in a singleton session and **"Login successful"** is printed
-7. If invalid: an `AuthenticationException` is raised and an error message is shown
+1. User registers and/or logs in
+2. User chooses **Manage Profile** from the main menu
+3. System checks session (must be logged in)
+4. User selects:
+	 - **Update Email** (validated by regex)
+	 - **Change Password** (verifies old password, hashes new password)
+5. Operations are executed via command objects
 
 ## OOP Concepts Used
 
-- **Abstraction:** authentication via `AuthenticationStrategy`
-- **Encapsulation:** `SessionManager` controls current user state
-- **Polymorphism:** application interacts with auth via interface type
+- **Encapsulation:** profile updates happen through service + commands
+- **Abstraction:** `ProfileService` hides command orchestration
+- **Polymorphism:** commands share a common `ProfileCommand` interface
 
 ## Design Patterns Used
 
-- **Strategy Pattern:** `AuthenticationStrategy` (currently `BasicAuthenticationStrategy`)
-- **Singleton Pattern:** `SessionManager`
-- **Factory Pattern (from UC-01):** `UserFactory` creates user subtypes
+- **Command Pattern:** `UpdateEmailCommand`, `ChangePasswordCommand`
+- **Strategy Pattern (from UC-02):** authentication via `AuthenticationStrategy`
+- **Singleton Pattern (from UC-02):** `SessionManager`
 
 ## Java Concepts Used
 
-- `Optional` to represent a successful authentication result
-- `MessageDigest` (SHA-256) for password verification
-- `UUID` + `LocalDateTime` on the user model (from UC-01)
+- `Optional` for session/user lookups
+- `MessageDigest` (SHA-256) for password hashing/verification
+- `UUID` + `LocalDateTime` on the user model
 
 ## Testing Summary (JUnit 5)
 
-- Authentication: `test/com/mycontacts/auth/AuthenticationStrategyTest.java`
-	- `shouldLoginWithValidCredentials()`
-	- `shouldFailWithWrongPassword()`
-	- `shouldFailWithUnknownEmail()`
-- Session: `test/com/mycontacts/session/SessionManagerTest.java`
-	- `shouldStoreLoggedInUser()`
-	- `shouldLogoutSuccessfully()`
+- Profile: `test/com/mycontacts/profile/ProfileServiceTest.java`
+	- `shouldUpdateEmailSuccessfully()`
+	- `shouldRejectInvalidEmail()`
+	- `shouldChangePasswordSuccessfully()`
+	- `shouldFailIfOldPasswordIncorrect()`
 
 Run tests using VS Code Testing (Java Test Runner) or Eclipse JUnit.

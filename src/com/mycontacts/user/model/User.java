@@ -11,8 +11,8 @@ public abstract class User {
 	private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
 
 	private final UUID id;
-	private final String email;
-	private final String passwordHash;
+	private String email;
+	private String passwordHash;
 	private final LocalDateTime createdAt;
 
 	protected User(UUID id, String email, String passwordHash, LocalDateTime createdAt) {
@@ -32,6 +32,14 @@ public abstract class User {
 
 	public String getPasswordHash() {
 		return passwordHash;
+	}
+
+	public void updateEmail(String newEmail) {
+		this.email = normalizeAndValidateEmail(newEmail);
+	}
+
+	public void updatePasswordHash(String newPasswordHash) {
+		this.passwordHash = validatePasswordHash(newPasswordHash);
 	}
 
 	public LocalDateTime getCreatedAt() {

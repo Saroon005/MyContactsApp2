@@ -13,6 +13,8 @@ public class InMemoryUserRepository implements UserRepository {
 	@Override
 	public void save(User user) {
 		Objects.requireNonNull(user, "user cannot be null");
+		// If the user's email changes, remove any stale keys that still point to this user.
+		usersByEmail.entrySet().removeIf(e -> e.getValue() == user && !e.getKey().equals(user.getEmail()));
 		usersByEmail.put(user.getEmail(), user);
 	}
 

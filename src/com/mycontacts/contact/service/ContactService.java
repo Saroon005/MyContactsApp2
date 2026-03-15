@@ -33,5 +33,9 @@ public interface ContactService {
 
 	void redoLastEdit();
 
+	void deleteContact(UUID id);
+
+	void hardDeleteContact(UUID id);
+
 	List<Contact> getAllContacts();
 }

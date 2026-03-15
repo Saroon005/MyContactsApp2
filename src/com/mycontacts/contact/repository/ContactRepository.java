@@ -12,4 +12,10 @@ public interface ContactRepository {
 	List<Contact> findAll();
 
 	Optional<Contact> findById(UUID id);
+
+	List<Contact> findAllActive();
+
+	void delete(UUID id);
+
+	void hardDelete(UUID id);
 }

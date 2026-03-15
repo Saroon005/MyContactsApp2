@@ -53,29 +53,26 @@ public class ContactServiceImpl implements ContactService {
 
 	@Override
 	public Optional<Contact> getContactById(UUID id) {
-		return contactRepository.findById(id);
+		return contactRepository.findById(id).filter(c -> !c.isDeleted());
 	}
 
 	@Override
 	public void updateContactName(UUID contactId, String newName) {
-		Contact contact = contactRepository.findById(contactId)
-				.orElseThrow(() -> new ValidationException("Contact not found"));
+		Contact contact = requireActiveContact(contactId);
 		undoRedoManager.executeCommand(new UpdateContactNameCommand(contact, newName));
 		contactRepository.save(contact);
 	}
 
 	@Override
 	public void updatePhone(UUID contactId, PhoneNumber phone) {
-		Contact contact = contactRepository.findById(contactId)
-				.orElseThrow(() -> new ValidationException("Contact not found"));
+		Contact contact = requireActiveContact(contactId);
 		undoRedoManager.executeCommand(new UpdatePhoneCommand(contact, phone));
 		contactRepository.save(contact);
 	}
 
 	@Override
 	public void updateEmail(UUID contactId, Email email) {
-		Contact contact = contactRepository.findById(contactId)
-				.orElseThrow(() -> new ValidationException("Contact not found"));
+		Contact contact = requireActiveContact(contactId);
 		undoRedoManager.executeCommand(new UpdateEmailCommand(contact, email));
 		contactRepository.save(contact);
 	}
@@ -91,8 +88,33 @@ public class ContactServiceImpl implements ContactService {
 	}
 
 	@Override
+	public void deleteContact(UUID id) {
+		Contact contact = contactRepository.findById(id).orElseThrow(() -> new ValidationException("Contact not found"));
+		if (contact.isDeleted()) {
+			throw new ValidationException("Contact not found");
+		}
+		contactRepository.delete(id);
+		contactRepository.save(contact);
+	}
+
+	@Override
+	public void hardDeleteContact(UUID id) {
+		Contact contact = contactRepository.findById(id).orElseThrow(() -> new ValidationException("Contact not found"));
+		contactRepository.hardDelete(contact.getId());
+	}
+
+	@Override
 	public List<Contact> getAllContacts() {
-		return contactRepository.findAll();
+		return contactRepository.findAllActive();
+	}
+
+	private Contact requireActiveContact(UUID contactId) {
+		Contact contact = contactRepository.findById(contactId)
+				.orElseThrow(() -> new ValidationException("Contact not found"));
+		if (contact.isDeleted()) {
+			throw new ValidationException("Contact not found");
+		}
+		return contact;
 	}
 }
 

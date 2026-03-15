@@ -14,6 +14,7 @@ public abstract class Contact {
 	private List<PhoneNumber> phoneNumbers;
 	private List<Email> emails;
 	private final LocalDateTime createdAt;
+	private boolean deleted = false;
 
 	protected Contact(UUID id, String name, List<PhoneNumber> phoneNumbers, List<Email> emails, LocalDateTime createdAt) {
 		this.id = Objects.requireNonNull(id, "id cannot be null");
@@ -53,6 +54,14 @@ public abstract class Contact {
 
 	public LocalDateTime getCreatedAt() {
 		return createdAt;
+	}
+
+	public void markDeleted() {
+		this.deleted = true;
+	}
+
+	public boolean isDeleted() {
+		return deleted;
 	}
 
 	protected static String normalizeRequired(String value, String fieldName) {

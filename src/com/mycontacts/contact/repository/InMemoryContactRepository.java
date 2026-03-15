@@ -31,4 +31,34 @@ public class InMemoryContactRepository implements ContactRepository {
 		}
 		return Optional.ofNullable(contactsById.get(id));
 	}
+
+	@Override
+	public List<Contact> findAllActive() {
+		List<Contact> active = new ArrayList<>();
+		for (Contact contact : contactsById.values()) {
+			if (!contact.isDeleted()) {
+				active.add(contact);
+			}
+		}
+		return active;
+	}
+
+	@Override
+	public void delete(UUID id) {
+		if (id == null) {
+			return;
+		}
+		Contact contact = contactsById.get(id);
+		if (contact != null) {
+			contact.markDeleted();
+		}
+	}
+
+	@Override
+	public void hardDelete(UUID id) {
+		if (id == null) {
+			return;
+		}
+		contactsById.remove(id);
+	}
 }

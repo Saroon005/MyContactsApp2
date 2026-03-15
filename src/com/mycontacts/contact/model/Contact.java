@@ -2,17 +2,21 @@ package com.mycontacts.contact.model;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 import com.mycontacts.common.exception.ValidationException;
+import com.mycontacts.tag.model.Tag;
 
 public abstract class Contact {
 	private final UUID id;
 	private String name;
 	private List<PhoneNumber> phoneNumbers;
 	private List<Email> emails;
+	private final Set<Tag> tags = new HashSet<>();
 	private final LocalDateTime createdAt;
 	private boolean deleted = false;
 
@@ -54,6 +58,22 @@ public abstract class Contact {
 
 	public LocalDateTime getCreatedAt() {
 		return createdAt;
+	}
+
+	public void addTag(Tag tag) {
+		Objects.requireNonNull(tag, "tag cannot be null");
+		tags.add(tag);
+	}
+
+	public void removeTag(Tag tag) {
+		if (tag == null) {
+			return;
+		}
+		tags.remove(tag);
+	}
+
+	public Set<Tag> getTags() {
+		return new HashSet<>(tags);
 	}
 
 	public void markDeleted() {

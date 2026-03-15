@@ -41,6 +41,11 @@ D:\Desktop\testt1\MyContactsApp2\src\com\mycontacts\profile\service\ProfileServi
 D:\Desktop\testt1\MyContactsApp2\src\com\mycontacts\search\service\SearchService.java
 D:\Desktop\testt1\MyContactsApp2\src\com\mycontacts\search\service\SearchServiceImpl.java
 D:\Desktop\testt1\MyContactsApp2\src\com\mycontacts\session\SessionManager.java
+D:\Desktop\testt1\MyContactsApp2\src\com\mycontacts\tag\model\Tag.java
+D:\Desktop\testt1\MyContactsApp2\src\com\mycontacts\tag\repository\InMemoryTagRepository.java
+D:\Desktop\testt1\MyContactsApp2\src\com\mycontacts\tag\repository\TagRepository.java
+D:\Desktop\testt1\MyContactsApp2\src\com\mycontacts\tag\service\TagService.java
+D:\Desktop\testt1\MyContactsApp2\src\com\mycontacts\tag\service\TagServiceImpl.java
 D:\Desktop\testt1\MyContactsApp2\src\com\mycontacts\user\factory\UserFactory.java
 D:\Desktop\testt1\MyContactsApp2\src\com\mycontacts\user\model\FreeUser.java
 D:\Desktop\testt1\MyContactsApp2\src\com\mycontacts\user\model\PremiumUser.java

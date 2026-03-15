@@ -1,6 +1,6 @@
-# MyContacts — UC-10 Filter and Sort Contacts
+# MyContacts — UC-11 Contact Tags
 
-This repository contains **Use Case 10 of the MyContacts system**.
+This repository contains **Use Case 11 of the MyContacts system**.
 It builds on:
 
 - UC-01 User Registration
@@ -13,43 +13,35 @@ It builds on:
 - UC-08 Contact Groups
 - UC-09 Search Contacts
 - UC-10 Filter & Sort Contacts
+- UC-11 Contact Tags
 
 ## Description
 
-- **Use Case:** UC-10 Filter and Sort Contacts
+- **Use Case:** UC-11 Contact Tags
 - **Actor:** Authenticated user
-- **Goal:** Filter contacts by group/date and sort contacts by name/creation date
+- **Goal:** Categorize contacts using tags (e.g., Family, Work, Friends)
 
-## Filtering Flow
-
-1. User logs in
-2. User selects **Filter Contacts**
-3. User chooses filter type:
-  - Filter by Group
-  - Filter by Creation Date
-4. User enters the group ID or date
-5. System prints matching contacts (or `No contacts found`)
-
-## Sorting Flow
+## Tag Management Flow
 
 1. User logs in
-2. User selects **Sort Contacts**
-3. User chooses sort type:
-  - Sort by Name
-  - Sort by Creation Date
-4. System prints the sorted contact list (or `No contacts found`)
+2. User can:
+   - Create a tag
+   - Add a tag to a contact (creates the tag automatically if missing)
+   - Remove a tag from a contact
+   - View contacts by tag
+3. System prints matching contacts (or `No contacts found`)
 
 ## Java Concepts Used
 
-- `UUID` parsing for group IDs
-- `LocalDate` parsing for date filters
-- `List` + loops for filtering
-- Sorting via `Comparator` and `List.sort()`
+- `Set<Tag>` with `HashSet` to store unique tags per contact
+- Case-insensitive tag names via normalization (`toLowerCase(Locale.ROOT)`)
+- `Map` storage for tags in an in-memory repository
+- Simple loops for filtering contacts by tag
 
 ## Testing Summary (JUnit 5)
 
-- `test/com/mycontacts/filter/FilterServiceTest.java`
-  - `shouldFilterContactsByGroup()`
-  - `shouldFilterContactsByDate()`
-  - `shouldSortContactsByName()`
-  - `shouldSortContactsByCreationDate()`
+- `test/com/mycontacts/tag/TagServiceTest.java`
+  - `shouldCreateTag()`
+  - `shouldAddTagToContact()`
+  - `shouldRemoveTagFromContact()`
+  - `shouldReturnContactsByTag()`

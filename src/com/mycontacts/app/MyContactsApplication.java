@@ -29,6 +29,10 @@ import com.mycontacts.profile.service.ProfileServiceImpl;
 import com.mycontacts.search.service.SearchService;
 import com.mycontacts.search.service.SearchServiceImpl;
 import com.mycontacts.session.SessionManager;
+import com.mycontacts.tag.repository.InMemoryTagRepository;
+import com.mycontacts.tag.repository.TagRepository;
+import com.mycontacts.tag.service.TagService;
+import com.mycontacts.tag.service.TagServiceImpl;
 import com.mycontacts.user.factory.UserFactory;
 import com.mycontacts.user.repository.InMemoryUserRepository;
 import com.mycontacts.user.repository.UserRepository;
@@ -40,23 +44,22 @@ import com.mycontacts.user.service.UserServiceImpl;
  * MAIN CLASS - MyContactsApplication
  * ======================================================
  *
- * Use Case 10: Filter and Sort Contacts
+ * Use Case 11: Contact Tags
  *
  * Description:
  * This version extends the MyContacts system by allowing
- * users to filter and sort their contacts.
+ * users to categorize contacts using tags.
  *
  * At this stage, the application:
- * - Allows filtering contacts by group
- * - Allows filtering contacts by creation date
- * - Allows sorting contacts by name
- * - Allows sorting contacts by creation date
+ * - Allows creating tags
+ * - Allows assigning tags to contacts
+ * - Allows removing tags from contacts
+ * - Allows viewing contacts by tag
  *
- * The implementation uses simple filtering
- * and sorting logic.
+ * The implementation uses simple collections.
  *
  * @author Developer
- * @version 10.0
+ * @version 11.0
  */
 public class MyContactsApplication {
 	public static void main(String[] args) {
@@ -72,9 +75,11 @@ public class MyContactsApplication {
 		GroupService groupService = new GroupServiceImpl(groupRepository, contactService);
 		SearchService searchService = new SearchServiceImpl(contactRepository);
 		FilterService filterService = new FilterServiceImpl(contactRepository, groupRepository);
+		TagRepository tagRepository = new InMemoryTagRepository();
+		TagService tagService = new TagServiceImpl(tagRepository, contactRepository);
 
 		try (Scanner scanner = new Scanner(System.in)) {
-			System.out.println("=== MyContacts (UC-10: Filter and Sort Contacts) ===");
+			System.out.println("=== MyContacts (UC-11: Contact Tags) ===");
 			while (true) {
 				System.out.println();
 				System.out.println("1 Register");
@@ -91,8 +96,12 @@ public class MyContactsApplication {
 				System.out.println("12 Search Contacts");
 				System.out.println("13 Filter Contacts");
 				System.out.println("14 Sort Contacts");
-				System.out.println("15 Logout");
-				System.out.println("16 Exit");
+				System.out.println("15 Create Tag");
+				System.out.println("16 Add Tag To Contact");
+				System.out.println("17 Remove Tag From Contact");
+				System.out.println("18 View Contacts By Tag");
+				System.out.println("19 Logout");
+				System.out.println("20 Exit");
 				System.out.print("Choose an option: ");
 
 				if (!scanner.hasNextLine()) {
@@ -578,15 +587,102 @@ public class MyContactsApplication {
 					break;
 				}
 				case "15": {
+					if (sessionManager.getCurrentUser().isEmpty()) {
+						System.out.println("No user is logged in. Please login first.");
+						break;
+					}
+
+					System.out.print("Enter tag name: ");
+					String tagName = scanner.nextLine();
+					try {
+						var tag = tagService.createTag(tagName);
+						System.out.println("Tag created: " + tag.getId() + " | " + tag.getName());
+					} catch (ValidationException ex) {
+						System.out.println("Create tag failed: " + ex.getMessage());
+					}
+					break;
+				}
+				case "16": {
+					if (sessionManager.getCurrentUser().isEmpty()) {
+						System.out.println("No user is logged in. Please login first.");
+						break;
+					}
+
+					System.out.print("Enter contact ID: ");
+					String contactIdRaw = scanner.nextLine();
+					UUID contactId;
+					try {
+						contactId = UUID.fromString(contactIdRaw.trim());
+					} catch (IllegalArgumentException ex) {
+						System.out.println("Invalid contact ID format.");
+						break;
+					}
+
+					System.out.print("Enter tag name: ");
+					String tagName = scanner.nextLine();
+					try {
+						tagService.addTagToContact(contactId, tagName);
+						System.out.println("Tag added to contact");
+					} catch (ValidationException ex) {
+						System.out.println("Add tag failed: " + ex.getMessage());
+					}
+					break;
+				}
+				case "17": {
+					if (sessionManager.getCurrentUser().isEmpty()) {
+						System.out.println("No user is logged in. Please login first.");
+						break;
+					}
+
+					System.out.print("Enter contact ID: ");
+					String contactIdRaw = scanner.nextLine();
+					UUID contactId;
+					try {
+						contactId = UUID.fromString(contactIdRaw.trim());
+					} catch (IllegalArgumentException ex) {
+						System.out.println("Invalid contact ID format.");
+						break;
+					}
+
+					System.out.print("Enter tag name: ");
+					String tagName = scanner.nextLine();
+					try {
+						tagService.removeTagFromContact(contactId, tagName);
+						System.out.println("Tag removed from contact");
+					} catch (ValidationException ex) {
+						System.out.println("Remove tag failed: " + ex.getMessage());
+					}
+					break;
+				}
+				case "18": {
+					if (sessionManager.getCurrentUser().isEmpty()) {
+						System.out.println("No user is logged in. Please login first.");
+						break;
+					}
+
+					System.out.print("Enter tag name: ");
+					String tagName = scanner.nextLine();
+					var results = tagService.getContactsByTag(tagName);
+					if (results.isEmpty()) {
+						System.out.println("No contacts found");
+						break;
+					}
+					System.out.println("Matches:");
+					for (var c : results) {
+						System.out.println("- " + c.getId() + " | " + c.getName());
+					}
+					break;
+				}
+				case "19": {
 					sessionManager.logout();
 					System.out.println("Logged out");
 					break;
 				}
-				case "16":
+				case "20":
 					System.out.println("Goodbye!");
 					return;
 				default:
-					System.out.println("Invalid option. Please choose 1-16.");
+					System.out.println("Invalid option. Please choose 1-20.");
 					break;
 				}
 			}

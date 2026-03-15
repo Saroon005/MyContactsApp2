@@ -1,11 +1,16 @@
 package com.mycontacts.app;
 
 import java.util.Scanner;
+import java.util.UUID;
 
 import com.mycontacts.auth.strategy.AuthenticationStrategy;
 import com.mycontacts.auth.strategy.BasicAuthenticationStrategy;
 import com.mycontacts.common.exception.AuthenticationException;
 import com.mycontacts.common.exception.ValidationException;
+import com.mycontacts.contact.display.BaseContactView;
+import com.mycontacts.contact.display.ContactView;
+import com.mycontacts.contact.display.MaskedEmailDecorator;
+import com.mycontacts.contact.display.UpperCaseNameDecorator;
 import com.mycontacts.contact.model.Email;
 import com.mycontacts.contact.model.PhoneNumber;
 import com.mycontacts.contact.repository.ContactRepository;
@@ -26,22 +31,22 @@ import com.mycontacts.user.service.UserServiceImpl;
  * MAIN CLASS - MyContactsApplication
  * ======================================================
  *
- * Use Case 4: Create Contact
+ * Use Case 5: View Contact Details
  *
  * Description:
  * This version extends the MyContacts system by allowing
- * authenticated users to create and store contacts.
+ * users to view stored contacts in a formatted manner.
  *
  * At this stage, the application:
- * - Supports creating person and organization contacts
- * - Uses composition for phone numbers and emails
- * - Uses a builder to construct contacts
- * - Stores contacts in a repository
+ * - Displays full contact information
+ * - Supports formatted views using decorators
+ * - Allows masking of sensitive information
+ * - Provides flexible display extensions
  *
- * This introduces the core contact management domain.
+ * This introduces the Decorator Pattern.
  *
  * @author Developer
- * @version 4.0
+ * @version 5.0
  */
 public class MyContactsApplication {
 	public static void main(String[] args) {
@@ -55,14 +60,14 @@ public class MyContactsApplication {
 		ContactService contactService = new ContactServiceImpl(contactRepository);
 
 		try (Scanner scanner = new Scanner(System.in)) {
-			System.out.println("=== MyContacts (UC-04: Create Contact) ===");
+			System.out.println("=== MyContacts (UC-05: View Contact Details) ===");
 			while (true) {
 				System.out.println();
 				System.out.println("1 Register");
 				System.out.println("2 Login");
 				System.out.println("3 Manage Profile");
 				System.out.println("4 Create Contact");
-				System.out.println("5 View Contacts");
+				System.out.println("5 View Contact Details");
 				System.out.println("6 Logout");
 				System.out.println("7 Exit");
 				System.out.print("Choose an option: ");
@@ -178,28 +183,42 @@ public class MyContactsApplication {
 						break;
 					}
 
-					var contacts = contactService.getAllContacts();
-					if (contacts.isEmpty()) {
-						System.out.println("No contacts found.");
-						break;
-					}
-					System.out.println("=== Contacts ===");
-					for (var c : contacts) {
-						System.out.println("ID: " + c.getId());
-						System.out.println("Name: " + c.getName());
-						if (!c.getPhoneNumbers().isEmpty()) {
-							System.out.println("Phones:");
-							for (var p : c.getPhoneNumbers()) {
-								System.out.println("- " + p.getLabel() + ": " + p.getNumber());
-							}
+					System.out.print("Enter contact ID: ");
+					String idRaw = scanner.nextLine();
+					try {
+						UUID id = UUID.fromString(idRaw.trim());
+						var contactOpt = contactService.getContactById(id);
+						if (contactOpt.isEmpty()) {
+							System.out.println("Contact not found.");
+							break;
 						}
-						if (!c.getEmails().isEmpty()) {
-							System.out.println("Emails:");
-							for (var e : c.getEmails()) {
-								System.out.println("- " + e.getLabel() + ": " + e.getAddress());
-							}
+
+						System.out.println("Choose display option:");
+						System.out.println("1 Normal View");
+						System.out.println("2 Uppercase Name");
+						System.out.println("3 Mask Email");
+						System.out.print("Option: ");
+						String viewChoice = scanner.nextLine().trim();
+
+						ContactView view = new BaseContactView();
+						switch (viewChoice) {
+						case "1":
+							break;
+						case "2":
+							view = new UpperCaseNameDecorator(view);
+							break;
+						case "3":
+							view = new MaskedEmailDecorator(view);
+							break;
+						default:
+							System.out.println("Invalid option. Showing normal view.");
+							break;
 						}
+
 						System.out.println();
+						System.out.println(view.display(contactOpt.orElseThrow()));
+					} catch (IllegalArgumentException ex) {
+						System.out.println("Invalid contact ID format.");
 					}
 					break;
 				case "6":

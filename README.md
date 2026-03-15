@@ -1,57 +1,56 @@
-# MyContacts — UC-04 Create Contact
+# MyContacts — UC-05 View Contact Details
 
-This repository contains **Use Case 4 of the MyContacts system**.
+This repository contains **Use Case 5 of the MyContacts system**.
 It builds on:
 
 - **UC-01:** User Registration
-- **UC-02:** Authentication + Session
+- **UC-02:** Authentication
 - **UC-03:** Profile Management
-- **UC-04:** Contact Creation (this version)
+- **UC-04:** Contact Creation
+- **UC-05:** Contact Viewing (this version)
 
 ## Description
 
-- **Use Case:** UC-04 Create Contact
+- **Use Case:** UC-05 View Contact Details
 - **Actor:** Authenticated user
-- **Goal:** Create and store `PERSON` or `ORGANIZATION` contacts
+- **Goal:** View stored contact details with optional formatting
 
-## Contact Creation Flow
+## Contact Viewing Flow
 
 1. User logs in
-2. User chooses **Create Contact** from the main menu
-3. System checks session (must be logged in)
-4. User enters contact type (`PERSON` / `ORGANIZATION`)
-5. User enters name
-6. User optionally enters a phone number and an email
-7. System constructs the contact using a builder
-8. System stores the contact in an in-memory repository
-9. System prints confirmation with the generated contact ID
+2. User chooses **View Contact Details**
+3. User enters a contact ID
+4. System retrieves the contact from the repository via `ContactService`
+5. User chooses a display mode:
+	 - Normal View
+	 - Uppercase Name
+	 - Mask Email
+6. The application applies decorators dynamically and prints the formatted output
 
 ## OOP Concepts Used
 
-- **Abstraction:** `Contact` base class + repository/service interfaces
-- **Inheritance:** `PersonContact` / `OrganizationContact`
-- **Composition:** `Contact` contains `PhoneNumber` and `Email`
-- **Encapsulation:** private fields + getters + defensive copying
+- **Abstraction:** `ContactView` interface defines display behavior
+- **Encapsulation:** display logic is separated from the `Contact` model
+- **Polymorphism:** decorators wrap a `ContactView` without changing callers
 
 ## Design Patterns Used
 
-- **Builder Pattern:** `ContactBuilder`
+- **Decorator Pattern:** `UpperCaseNameDecorator`, `MaskedEmailDecorator`
+- **Builder Pattern (from UC-04):** contact construction
 - **Command Pattern (from UC-03):** profile operations
-- **Strategy Pattern (from UC-02):** authentication
-- **Singleton Pattern (from UC-02):** session management
 
 ## Java Concepts Used
 
-- `UUID` (IDs), `LocalDateTime` (timestamps)
-- `List.copyOf(...)` + defensive copies for immutability
-- `Optional` for session checks and repository lookups
+- `Optional` for `getContactById` and session checks
+- `UUID` parsing (`UUID.fromString`) for contact lookup
+- `Pattern` / `Matcher` for formatting transforms
 
 ## Testing Summary (JUnit 5)
 
-- Contacts: `test/com/mycontacts/contact/ContactServiceTest.java`
-	- `shouldCreatePersonContact()`
-	- `shouldCreateOrganizationContact()`
-	- `shouldStoreContactInRepository()`
-	- `shouldReturnAllContacts()`
+- Views: `test/com/mycontacts/contact/display/ContactViewTest.java`
+	- `shouldDisplayContactNormally()`
+	- `shouldDisplayUppercaseName()`
+	- `shouldMaskEmailAddress()`
+	- `shouldAllowMultipleDecorators()`
 
 Run tests using VS Code Testing (Java Test Runner) or Eclipse JUnit.

@@ -1,6 +1,8 @@
 package com.mycontacts.contact.service;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import com.mycontacts.contact.model.Contact;
 import com.mycontacts.contact.model.Email;
@@ -18,6 +20,8 @@ public interface ContactService {
 	default Contact createOrganizationContact(String name) {
 		return createOrganizationContact(name, null, null);
 	}
+
+	Optional<Contact> getContactById(UUID id);
 
 	List<Contact> getAllContacts();
 }

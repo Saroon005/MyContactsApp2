@@ -3,6 +3,8 @@ package com.mycontacts.contact.service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 
 import com.mycontacts.common.util.IdGenerator;
 import com.mycontacts.contact.builder.ContactBuilder;
@@ -39,7 +41,13 @@ public class ContactServiceImpl implements ContactService {
 	}
 
 	@Override
+	public Optional<Contact> getContactById(UUID id) {
+		return contactRepository.findById(id);
+	}
+
+	@Override
 	public List<Contact> getAllContacts() {
 		return contactRepository.findAll();
 	}
 }
+

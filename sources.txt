@@ -36,6 +36,8 @@ D:\Desktop\testt1\MyContactsApp2\src\com\mycontacts\profile\command\ProfileComma
 D:\Desktop\testt1\MyContactsApp2\src\com\mycontacts\profile\command\UpdateEmailCommand.java
 D:\Desktop\testt1\MyContactsApp2\src\com\mycontacts\profile\service\ProfileService.java
 D:\Desktop\testt1\MyContactsApp2\src\com\mycontacts\profile\service\ProfileServiceImpl.java
+D:\Desktop\testt1\MyContactsApp2\src\com\mycontacts\search\service\SearchService.java
+D:\Desktop\testt1\MyContactsApp2\src\com\mycontacts\search\service\SearchServiceImpl.java
 D:\Desktop\testt1\MyContactsApp2\src\com\mycontacts\session\SessionManager.java
 D:\Desktop\testt1\MyContactsApp2\src\com\mycontacts\user\factory\UserFactory.java
 D:\Desktop\testt1\MyContactsApp2\src\com\mycontacts\user\model\FreeUser.java

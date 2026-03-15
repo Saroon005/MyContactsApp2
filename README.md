@@ -1,6 +1,6 @@
-# MyContacts — UC-08 Contact Groups and Bulk Operations
+# MyContacts — UC-09 Search Contacts
 
-This repository contains **Use Case 8 of the MyContacts system**.
+This repository contains **Use Case 9 of the MyContacts system**.
 It builds on:
 
 - UC-01 User Registration
@@ -10,49 +10,39 @@ It builds on:
 - UC-05 View Contact
 - UC-06 Edit Contact
 - UC-07 Delete Contact
-- UC-08 Contact Groups and Bulk Operations
+- UC-08 Contact Groups
+- UC-09 Search Contacts
 
 ## Description
 
-- **Use Case:** UC-08 Contact Groups and Bulk Operations
+- **Use Case:** UC-09 Search Contacts
 - **Actor:** Authenticated user
-- **Goal:** Organize contacts into groups and support bulk delete actions
+- **Goal:** Search for contacts by name, phone number, or email
 
-## Features Added (UC-08)
+## Search Flow
 
-- Create a contact group
-- Add contacts to a group
-- View group contacts
-- Bulk delete all contacts in a group (soft delete)
+1. User logs in
+2. User selects **Search Contacts**
+3. User chooses a search type (Name / Phone / Email)
+4. User enters a query
+5. System prints matching contacts (or `No contacts found`)
 
-## Console Menu (UC-08)
+## Search Types
 
-1 Register
-2 Login
-3 Manage Profile
-4 Create Contact
-5 View Contact
-6 Edit Contact
-7 Delete Contact
-8 Create Group
-9 Add Contact To Group
-10 View Group Contacts
-11 Bulk Delete Group Contacts
-12 Logout
-13 Exit
+- **Name:** case-insensitive substring match on contact name
+- **Phone:** case-insensitive substring match across a contact's phone numbers
+- **Email:** case-insensitive substring match across a contact's email addresses
 
-## Implementation Notes
+## Java Concepts Used
 
-- Group module: `src/com/mycontacts/group/`
-   - `group.model.ContactGroup` stores `UUID id`, `String name`, and a `List<Contact>`.
-   - `group.repository.InMemoryGroupRepository` stores groups in a `Map<UUID, ContactGroup>`.
-   - `group.service.GroupServiceImpl` provides create/add/list/bulk-delete operations.
-- Bulk delete uses existing UC-07 behavior by calling `ContactService.deleteContact(id)` for each contact in the group.
+- `List` traversal with loops
+- Case-insensitive search via `String.toLowerCase(Locale.ROOT)`
+- Filtering active contacts via repository (`deleted == false`)
 
 ## Testing Summary (JUnit 5)
 
-- `test/com/mycontacts/group/GroupServiceTest.java`
-   - `shouldCreateGroup()`
-   - `shouldAddContactToGroup()`
-   - `shouldReturnGroupContacts()`
-   - `shouldDeleteAllContactsInGroup()`
+- `test/com/mycontacts/search/SearchServiceTest.java`
+  - `shouldFindContactByName()`
+  - `shouldFindContactByPhone()`
+  - `shouldFindContactByEmail()`
+  - `shouldReturnEmptyListIfNotFound()`

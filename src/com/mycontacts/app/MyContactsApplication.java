@@ -23,6 +23,8 @@ import com.mycontacts.group.service.GroupService;
 import com.mycontacts.group.service.GroupServiceImpl;
 import com.mycontacts.profile.service.ProfileService;
 import com.mycontacts.profile.service.ProfileServiceImpl;
+import com.mycontacts.search.service.SearchService;
+import com.mycontacts.search.service.SearchServiceImpl;
 import com.mycontacts.session.SessionManager;
 import com.mycontacts.user.factory.UserFactory;
 import com.mycontacts.user.repository.InMemoryUserRepository;
@@ -35,22 +37,21 @@ import com.mycontacts.user.service.UserServiceImpl;
  * MAIN CLASS - MyContactsApplication
  * ======================================================
  *
- * Use Case 8: Contact Groups and Bulk Operations
+ * Use Case 9: Search Contacts
  *
  * Description:
  * This version extends the MyContacts system by allowing
- * users to organize contacts into groups.
+ * users to search for contacts using different criteria.
  *
  * At this stage, the application:
- * - Allows creating contact groups
- * - Allows adding contacts to groups
- * - Allows viewing group members
- * - Allows performing bulk delete on group contacts
+ * - Allows searching contacts by name
+ * - Allows searching contacts by phone number
+ * - Allows searching contacts by email
  *
- * The implementation remains simple.
+ * The implementation uses simple filtering logic.
  *
  * @author Developer
- * @version 8.0
+ * @version 9.0
  */
 public class MyContactsApplication {
 	public static void main(String[] args) {
@@ -64,9 +65,10 @@ public class MyContactsApplication {
 		ContactService contactService = new ContactServiceImpl(contactRepository);
 		GroupRepository groupRepository = new InMemoryGroupRepository();
 		GroupService groupService = new GroupServiceImpl(groupRepository, contactService);
+		SearchService searchService = new SearchServiceImpl(contactRepository);
 
 		try (Scanner scanner = new Scanner(System.in)) {
-			System.out.println("=== MyContacts (UC-08: Contact Groups and Bulk Operations) ===");
+			System.out.println("=== MyContacts (UC-09: Search Contacts) ===");
 			while (true) {
 				System.out.println();
 				System.out.println("1 Register");
@@ -80,8 +82,9 @@ public class MyContactsApplication {
 				System.out.println("9 Add Contact To Group");
 				System.out.println("10 View Group Contacts");
 				System.out.println("11 Bulk Delete Group Contacts");
-				System.out.println("12 Logout");
-				System.out.println("13 Exit");
+				System.out.println("12 Search Contacts");
+				System.out.println("13 Logout");
+				System.out.println("14 Exit");
 				System.out.print("Choose an option: ");
 
 				if (!scanner.hasNextLine()) {
@@ -443,15 +446,53 @@ public class MyContactsApplication {
 					break;
 				}
 				case "12": {
+					if (sessionManager.getCurrentUser().isEmpty()) {
+						System.out.println("No user is logged in. Please login first.");
+						break;
+					}
+
+					System.out.println();
+					System.out.println("Search type:");
+					System.out.println("1 Search by Name");
+					System.out.println("2 Search by Phone");
+					System.out.println("3 Search by Email");
+					System.out.print("Choose an option: ");
+					String searchType = scanner.nextLine().trim();
+					System.out.print("Enter search text: ");
+					String query = scanner.nextLine();
+
+					var results = switch (searchType) {
+					case "1" -> searchService.searchByName(query);
+					case "2" -> searchService.searchByPhone(query);
+					case "3" -> searchService.searchByEmail(query);
+					default -> null;
+					};
+
+					if (results == null) {
+						System.out.println("Invalid option. Please choose 1, 2, or 3.");
+						break;
+					}
+					if (results.isEmpty()) {
+						System.out.println("No contacts found");
+						break;
+					}
+
+					System.out.println("Matches:");
+					for (var c : results) {
+						System.out.println("- " + c.getId() + " | " + c.getName());
+					}
+					break;
+				}
+				case "13": {
 					sessionManager.logout();
 					System.out.println("Logged out");
 					break;
 				}
-				case "13":
+				case "14":
 					System.out.println("Goodbye!");
 					return;
 				default:
-					System.out.println("Invalid option. Please choose 1-13.");
+					System.out.println("Invalid option. Please choose 1-14.");
 					break;
 				}
 			}

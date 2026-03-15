@@ -1,5 +1,6 @@
 package com.mycontacts.app;
 
+import java.time.LocalDate;
 import java.util.Scanner;
 import java.util.UUID;
 
@@ -17,6 +18,8 @@ import com.mycontacts.contact.repository.ContactRepository;
 import com.mycontacts.contact.repository.InMemoryContactRepository;
 import com.mycontacts.contact.service.ContactService;
 import com.mycontacts.contact.service.ContactServiceImpl;
+import com.mycontacts.filter.service.FilterService;
+import com.mycontacts.filter.service.FilterServiceImpl;
 import com.mycontacts.group.repository.GroupRepository;
 import com.mycontacts.group.repository.InMemoryGroupRepository;
 import com.mycontacts.group.service.GroupService;
@@ -37,21 +40,23 @@ import com.mycontacts.user.service.UserServiceImpl;
  * MAIN CLASS - MyContactsApplication
  * ======================================================
  *
- * Use Case 9: Search Contacts
+ * Use Case 10: Filter and Sort Contacts
  *
  * Description:
  * This version extends the MyContacts system by allowing
- * users to search for contacts using different criteria.
+ * users to filter and sort their contacts.
  *
  * At this stage, the application:
- * - Allows searching contacts by name
- * - Allows searching contacts by phone number
- * - Allows searching contacts by email
+ * - Allows filtering contacts by group
+ * - Allows filtering contacts by creation date
+ * - Allows sorting contacts by name
+ * - Allows sorting contacts by creation date
  *
- * The implementation uses simple filtering logic.
+ * The implementation uses simple filtering
+ * and sorting logic.
  *
  * @author Developer
- * @version 9.0
+ * @version 10.0
  */
 public class MyContactsApplication {
 	public static void main(String[] args) {
@@ -66,9 +71,10 @@ public class MyContactsApplication {
 		GroupRepository groupRepository = new InMemoryGroupRepository();
 		GroupService groupService = new GroupServiceImpl(groupRepository, contactService);
 		SearchService searchService = new SearchServiceImpl(contactRepository);
+		FilterService filterService = new FilterServiceImpl(contactRepository, groupRepository);
 
 		try (Scanner scanner = new Scanner(System.in)) {
-			System.out.println("=== MyContacts (UC-09: Search Contacts) ===");
+			System.out.println("=== MyContacts (UC-10: Filter and Sort Contacts) ===");
 			while (true) {
 				System.out.println();
 				System.out.println("1 Register");
@@ -83,8 +89,10 @@ public class MyContactsApplication {
 				System.out.println("10 View Group Contacts");
 				System.out.println("11 Bulk Delete Group Contacts");
 				System.out.println("12 Search Contacts");
-				System.out.println("13 Logout");
-				System.out.println("14 Exit");
+				System.out.println("13 Filter Contacts");
+				System.out.println("14 Sort Contacts");
+				System.out.println("15 Logout");
+				System.out.println("16 Exit");
 				System.out.print("Choose an option: ");
 
 				if (!scanner.hasNextLine()) {
@@ -484,15 +492,101 @@ public class MyContactsApplication {
 					break;
 				}
 				case "13": {
+					if (sessionManager.getCurrentUser().isEmpty()) {
+						System.out.println("No user is logged in. Please login first.");
+						break;
+					}
+
+					System.out.println();
+					System.out.println("Filter Contacts:");
+					System.out.println("1 Filter by Group");
+					System.out.println("2 Filter by Creation Date");
+					System.out.print("Choose an option: ");
+					String filterType = scanner.nextLine().trim();
+
+					var results = switch (filterType) {
+					case "1" -> {
+						System.out.print("Enter group ID: ");
+						String groupIdRaw = scanner.nextLine();
+						try {
+							UUID groupId = UUID.fromString(groupIdRaw.trim());
+							yield filterService.filterByGroup(groupId);
+						} catch (IllegalArgumentException ex) {
+							yield null;
+						}
+					}
+					case "2" -> {
+						System.out.print("Enter creation date (YYYY-MM-DD): ");
+						String dateRaw = scanner.nextLine();
+						try {
+							LocalDate date = LocalDate.parse(dateRaw.trim());
+							yield filterService.filterByDate(date);
+						} catch (Exception ex) {
+							yield null;
+						}
+					}
+					default -> null;
+					};
+
+					if (results == null) {
+						System.out.println("Invalid option or invalid input.");
+						break;
+					}
+					if (results.isEmpty()) {
+						System.out.println("No contacts found");
+						break;
+					}
+
+					System.out.println("Results:");
+					for (var c : results) {
+						System.out.println("- " + c.getId() + " | " + c.getName() + " | " + c.getCreatedAt());
+					}
+					break;
+				}
+				case "14": {
+					if (sessionManager.getCurrentUser().isEmpty()) {
+						System.out.println("No user is logged in. Please login first.");
+						break;
+					}
+
+					System.out.println();
+					System.out.println("Sort Contacts:");
+					System.out.println("1 Sort by Name");
+					System.out.println("2 Sort by Creation Date");
+					System.out.print("Choose an option: ");
+					String sortType = scanner.nextLine().trim();
+
+					var results = switch (sortType) {
+					case "1" -> filterService.sortByName();
+					case "2" -> filterService.sortByCreationDate();
+					default -> null;
+					};
+
+					if (results == null) {
+						System.out.println("Invalid option. Please choose 1 or 2.");
+						break;
+					}
+					if (results.isEmpty()) {
+						System.out.println("No contacts found");
+						break;
+					}
+
+					System.out.println("Results:");
+					for (var c : results) {
+						System.out.println("- " + c.getId() + " | " + c.getName() + " | " + c.getCreatedAt());
+					}
+					break;
+				}
+				case "15": {
 					sessionManager.logout();
 					System.out.println("Logged out");
 					break;
 				}
-				case "14":
+				case "16":
 					System.out.println("Goodbye!");
 					return;
 				default:
-					System.out.println("Invalid option. Please choose 1-14.");
+					System.out.println("Invalid option. Please choose 1-16.");
 					break;
 				}
 			}

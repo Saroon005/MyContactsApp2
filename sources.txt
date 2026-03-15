@@ -26,6 +26,8 @@ D:\Desktop\testt1\MyContactsApp2\src\com\mycontacts\contact\repository\ContactRe
 D:\Desktop\testt1\MyContactsApp2\src\com\mycontacts\contact\repository\InMemoryContactRepository.java
 D:\Desktop\testt1\MyContactsApp2\src\com\mycontacts\contact\service\ContactService.java
 D:\Desktop\testt1\MyContactsApp2\src\com\mycontacts\contact\service\ContactServiceImpl.java
+D:\Desktop\testt1\MyContactsApp2\src\com\mycontacts\filter\service\FilterService.java
+D:\Desktop\testt1\MyContactsApp2\src\com\mycontacts\filter\service\FilterServiceImpl.java
 D:\Desktop\testt1\MyContactsApp2\src\com\mycontacts\group\model\ContactGroup.java
 D:\Desktop\testt1\MyContactsApp2\src\com\mycontacts\group\repository\GroupRepository.java
 D:\Desktop\testt1\MyContactsApp2\src\com\mycontacts\group\repository\InMemoryGroupRepository.java

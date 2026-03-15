@@ -1,66 +1,50 @@
-# MyContacts — UC-01 User Registration
+# MyContacts — UC-02 User Authentication
 
-This repository contains **Use Case 1 of the MyContacts system**: registering a new user in a modular Java console application.
+This repository contains **Use Case 2 of the MyContacts system**.
+It **builds on UC-01 (User Registration)** and introduces secure login using authentication strategies and a logged-in session.
 
-## Use Case Description
+## Description
 
-- **Use Case:** UC-01 User Registration
-- **Actor:** End user
-- **Goal:** Register a `FREE` or `PREMIUM` user using email + password
+- **Use Case:** UC-02 User Authentication
+- **Actor:** Registered user
+- **Goal:** Log in using email + password
 
-## Flow
+## Authentication Flow
 
-1. User selects account type (`FREE` or `PREMIUM`)
+1. User chooses **Login** from the console menu
 2. User enters email
-3. User enters password (minimum 6 characters)
-4. System validates input and blocks duplicate emails
-5. System hashes the password (SHA-256)
-6. System creates a `User` via Factory Pattern
-7. System stores the user in an in-memory repository
-8. System prints success message with generated user ID
+3. User enters password
+4. System finds the user by email (repository)
+5. System verifies password hash (SHA-256)
+6. If valid: user is stored in a singleton session and **"Login successful"** is printed
+7. If invalid: an `AuthenticationException` is raised and an error message is shown
 
 ## OOP Concepts Used
 
-- **Abstraction:** `User` is an abstract base class
-- **Inheritance:** `FreeUser` and `PremiumUser` extend `User`
-- **Encapsulation:** private fields + getters
-- **Polymorphism:** service/repository interact via interfaces
+- **Abstraction:** authentication via `AuthenticationStrategy`
+- **Encapsulation:** `SessionManager` controls current user state
+- **Polymorphism:** application interacts with auth via interface type
 
 ## Design Patterns Used
 
-- **Factory Pattern:** `UserFactory` creates `FREE`/`PREMIUM` users
-- **Dependency Injection (constructor):** `UserServiceImpl` receives `UserRepository` + `UserFactory`
+- **Strategy Pattern:** `AuthenticationStrategy` (currently `BasicAuthenticationStrategy`)
+- **Singleton Pattern:** `SessionManager`
+- **Factory Pattern (from UC-01):** `UserFactory` creates user subtypes
 
 ## Java Concepts Used
 
-- `UUID` for identifiers
-- `LocalDateTime` timestamps
-- `Optional` to avoid nulls in repository/service lookups
-- `MessageDigest` (SHA-256) for password hashing
+- `Optional` to represent a successful authentication result
+- `MessageDigest` (SHA-256) for password verification
+- `UUID` + `LocalDateTime` on the user model (from UC-01)
 
-## How to Run the Application
+## Testing Summary (JUnit 5)
 
-### Option A — VS Code / Eclipse
+- Authentication: `test/com/mycontacts/auth/AuthenticationStrategyTest.java`
+	- `shouldLoginWithValidCredentials()`
+	- `shouldFailWithWrongPassword()`
+	- `shouldFailWithUnknownEmail()`
+- Session: `test/com/mycontacts/session/SessionManagerTest.java`
+	- `shouldStoreLoggedInUser()`
+	- `shouldLogoutSuccessfully()`
 
-Run the main class: `com.mycontacts.app.MyContactsApplication`.
-
-### Option B — PowerShell (Java 21)
-
-From the repository root:
-
-```powershell
-Remove-Item -Recurse -Force bin -ErrorAction SilentlyContinue
-New-Item -ItemType Directory -Force bin | Out-Null
-javac -d bin (Get-ChildItem -Recurse src -Filter *.java).FullName
-java -cp bin com.mycontacts.app.MyContactsApplication
-```
-
-## Test Coverage (JUnit 5)
-
-JUnit 5 tests are in `test/com/mycontacts/user/UserServiceTest.java`:
-
-- `shouldRegisterFreeUser()`
-- `shouldRegisterPremiumUser()`
-- `shouldNotAllowDuplicateEmail()`
-
-Run tests via the VS Code Testing panel (Java Test Runner) or Eclipse JUnit.
+Run tests using VS Code Testing (Java Test Runner) or Eclipse JUnit.

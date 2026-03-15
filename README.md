@@ -1,6 +1,6 @@
-# MyContacts — UC-07 Delete Contact
+# MyContacts — UC-08 Contact Groups and Bulk Operations
 
-This repository contains **Use Case 7 of the MyContacts system**.
+This repository contains **Use Case 8 of the MyContacts system**.
 It builds on:
 
 - UC-01 User Registration
@@ -10,37 +10,49 @@ It builds on:
 - UC-05 View Contact
 - UC-06 Edit Contact
 - UC-07 Delete Contact
+- UC-08 Contact Groups and Bulk Operations
 
 ## Description
 
-- **Use Case:** UC-07 Delete Contact
+- **Use Case:** UC-08 Contact Groups and Bulk Operations
 - **Actor:** Authenticated user
-- **Goal:** Remove contacts from the contact list via soft delete or hard delete
+- **Goal:** Organize contacts into groups and support bulk delete actions
 
-## Delete Contact Flow
+## Features Added (UC-08)
 
-1. User logs in
-2. User selects **Delete Contact**
-3. User enters the contact ID
-4. User selects delete type:
-   - Soft Delete (marks contact as deleted)
-   - Hard Delete (removes contact from repository)
-5. System confirms deletion
+- Create a contact group
+- Add contacts to a group
+- View group contacts
+- Bulk delete all contacts in a group (soft delete)
 
-## Soft Delete vs Hard Delete
+## Console Menu (UC-08)
 
-- **Soft Delete:** sets `Contact.deleted = true` and keeps the contact stored
-- **Hard Delete:** removes the contact from the repository map
+1 Register
+2 Login
+3 Manage Profile
+4 Create Contact
+5 View Contact
+6 Edit Contact
+7 Delete Contact
+8 Create Group
+9 Add Contact To Group
+10 View Group Contacts
+11 Bulk Delete Group Contacts
+12 Logout
+13 Exit
 
-## Java Concepts Used
+## Implementation Notes
 
-- `UUID` parsing with `UUID.fromString`
-- `Optional` for repository lookups
-- `Map` storage and simple filtering for active contacts
+- Group module: `src/com/mycontacts/group/`
+   - `group.model.ContactGroup` stores `UUID id`, `String name`, and a `List<Contact>`.
+   - `group.repository.InMemoryGroupRepository` stores groups in a `Map<UUID, ContactGroup>`.
+   - `group.service.GroupServiceImpl` provides create/add/list/bulk-delete operations.
+- Bulk delete uses existing UC-07 behavior by calling `ContactService.deleteContact(id)` for each contact in the group.
 
 ## Testing Summary (JUnit 5)
 
-- `test/com/mycontacts/contact/DeleteContactTest.java`
-  - `shouldSoftDeleteContact()`
-  - `shouldHardDeleteContact()`
-  - `shouldNotReturnSoftDeletedContacts()`
+- `test/com/mycontacts/group/GroupServiceTest.java`
+   - `shouldCreateGroup()`
+   - `shouldAddContactToGroup()`
+   - `shouldReturnGroupContacts()`
+   - `shouldDeleteAllContactsInGroup()`

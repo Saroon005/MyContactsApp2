@@ -17,6 +17,10 @@ import com.mycontacts.contact.repository.ContactRepository;
 import com.mycontacts.contact.repository.InMemoryContactRepository;
 import com.mycontacts.contact.service.ContactService;
 import com.mycontacts.contact.service.ContactServiceImpl;
+import com.mycontacts.group.repository.GroupRepository;
+import com.mycontacts.group.repository.InMemoryGroupRepository;
+import com.mycontacts.group.service.GroupService;
+import com.mycontacts.group.service.GroupServiceImpl;
 import com.mycontacts.profile.service.ProfileService;
 import com.mycontacts.profile.service.ProfileServiceImpl;
 import com.mycontacts.session.SessionManager;
@@ -31,21 +35,22 @@ import com.mycontacts.user.service.UserServiceImpl;
  * MAIN CLASS - MyContactsApplication
  * ======================================================
  *
- * Use Case 7: Delete Contact
+ * Use Case 8: Contact Groups and Bulk Operations
  *
  * Description:
  * This version extends the MyContacts system by allowing
- * users to remove contacts from their contact list.
+ * users to organize contacts into groups.
  *
  * At this stage, the application:
- * - Allows deletion of contacts
- * - Supports soft delete and hard delete options
- * - Updates the contact repository accordingly
+ * - Allows creating contact groups
+ * - Allows adding contacts to groups
+ * - Allows viewing group members
+ * - Allows performing bulk delete on group contacts
  *
- * The implementation is intentionally simple.
+ * The implementation remains simple.
  *
  * @author Developer
- * @version 7.0
+ * @version 8.0
  */
 public class MyContactsApplication {
 	public static void main(String[] args) {
@@ -57,9 +62,11 @@ public class MyContactsApplication {
 		SessionManager sessionManager = SessionManager.getInstance();
 		ProfileService profileService = new ProfileServiceImpl(userRepository);
 		ContactService contactService = new ContactServiceImpl(contactRepository);
+		GroupRepository groupRepository = new InMemoryGroupRepository();
+		GroupService groupService = new GroupServiceImpl(groupRepository, contactService);
 
 		try (Scanner scanner = new Scanner(System.in)) {
-			System.out.println("=== MyContacts (UC-07: Delete Contact) ===");
+			System.out.println("=== MyContacts (UC-08: Contact Groups and Bulk Operations) ===");
 			while (true) {
 				System.out.println();
 				System.out.println("1 Register");
@@ -69,10 +76,12 @@ public class MyContactsApplication {
 				System.out.println("5 View Contact");
 				System.out.println("6 Edit Contact");
 				System.out.println("7 Delete Contact");
-				System.out.println("8 Undo Last Edit");
-				System.out.println("9 Redo Last Edit");
-				System.out.println("10 Logout");
-				System.out.println("11 Exit");
+				System.out.println("8 Create Group");
+				System.out.println("9 Add Contact To Group");
+				System.out.println("10 View Group Contacts");
+				System.out.println("11 Bulk Delete Group Contacts");
+				System.out.println("12 Logout");
+				System.out.println("13 Exit");
 				System.out.print("Choose an option: ");
 
 				if (!scanner.hasNextLine()) {
@@ -227,8 +236,7 @@ public class MyContactsApplication {
 						System.out.println("Invalid contact ID format.");
 					}
 					break;
-				case "6":
-				{
+				case "6": {
 					if (sessionManager.getCurrentUser().isEmpty()) {
 						System.out.println("No user is logged in. Please login first.");
 						break;
@@ -328,8 +336,14 @@ public class MyContactsApplication {
 						System.out.println("No user is logged in. Please login first.");
 						break;
 					}
-					contactService.undoLastEdit();
-					System.out.println("Undo executed");
+					System.out.print("Enter group name: ");
+					String groupName = scanner.nextLine();
+					try {
+						var group = groupService.createGroup(groupName);
+						System.out.println("Group created successfully! Group ID: " + group.getId());
+					} catch (ValidationException ex) {
+						System.out.println("Group creation failed: " + ex.getMessage());
+					}
 					break;
 				}
 				case "9": {
@@ -337,26 +351,110 @@ public class MyContactsApplication {
 						System.out.println("No user is logged in. Please login first.");
 						break;
 					}
-					contactService.redoLastEdit();
-					System.out.println("Redo executed");
+
+					System.out.print("Enter group ID: ");
+					String groupIdRaw = scanner.nextLine();
+					UUID groupId;
+					try {
+						groupId = UUID.fromString(groupIdRaw.trim());
+					} catch (IllegalArgumentException ex) {
+						System.out.println("Invalid group ID format.");
+						break;
+					}
+
+					System.out.print("Enter contact ID: ");
+					String contactIdRaw = scanner.nextLine();
+					UUID contactId;
+					try {
+						contactId = UUID.fromString(contactIdRaw.trim());
+					} catch (IllegalArgumentException ex) {
+						System.out.println("Invalid contact ID format.");
+						break;
+					}
+
+					var contactOpt = contactService.getContactById(contactId);
+					if (contactOpt.isEmpty()) {
+						System.out.println("Contact not found.");
+						break;
+					}
+
+					try {
+						groupService.addContactToGroup(groupId, contactOpt.orElseThrow());
+						System.out.println("Contact added to group");
+					} catch (ValidationException ex) {
+						System.out.println("Add to group failed: " + ex.getMessage());
+					}
 					break;
 				}
 				case "10": {
+					if (sessionManager.getCurrentUser().isEmpty()) {
+						System.out.println("No user is logged in. Please login first.");
+						break;
+					}
+
+					System.out.print("Enter group ID: ");
+					String groupIdRaw = scanner.nextLine();
+					UUID groupId;
+					try {
+						groupId = UUID.fromString(groupIdRaw.trim());
+					} catch (IllegalArgumentException ex) {
+						System.out.println("Invalid group ID format.");
+						break;
+					}
+
+					try {
+						var members = groupService.getGroupContacts(groupId);
+						System.out.println("Group members:");
+						if (members.isEmpty()) {
+							System.out.println("(none)");
+							break;
+						}
+						for (var c : members) {
+							System.out.println(
+									"- " + c.getId() + " | " + c.getName() + (c.isDeleted() ? " (deleted)" : ""));
+						}
+					} catch (ValidationException ex) {
+						System.out.println("View group failed: " + ex.getMessage());
+					}
+					break;
+				}
+				case "11": {
+					if (sessionManager.getCurrentUser().isEmpty()) {
+						System.out.println("No user is logged in. Please login first.");
+						break;
+					}
+
+					System.out.print("Enter group ID: ");
+					String groupIdRaw = scanner.nextLine();
+					UUID groupId;
+					try {
+						groupId = UUID.fromString(groupIdRaw.trim());
+					} catch (IllegalArgumentException ex) {
+						System.out.println("Invalid group ID format.");
+						break;
+					}
+
+					try {
+						groupService.deleteAllContactsInGroup(groupId);
+						System.out.println("Bulk delete executed (soft delete)");
+					} catch (ValidationException ex) {
+						System.out.println("Bulk delete failed: " + ex.getMessage());
+					}
+					break;
+				}
+				case "12": {
 					sessionManager.logout();
 					System.out.println("Logged out");
 					break;
 				}
-				case "11":
+				case "13":
 					System.out.println("Goodbye!");
 					return;
 				default:
-					System.out.println("Invalid option. Please choose 1-11.");
+					System.out.println("Invalid option. Please choose 1-13.");
 					break;
 				}
 			}
 		}
 	}
 }
-
-
-
